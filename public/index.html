@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Google Maps and Socket.io</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const socket = io();
+
+            // Get the current coordinates and send them to the server
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const coordinates = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    console.log('Sending coordinates:', coordinates);
+                    socket.emit('sendCoordinates', coordinates);
+                });
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+            }
+
+            // Listen for the coordinates from the server
+            socket.on('coordinates', (data) => {
+                console.log('Received coordinates:', data);
+                // Display the coordinates
+                document.getElementById('coordinates').textContent = `Latitude: ${data.lat}, Longitude: ${data.lng}`;
+
+                // Initialize and display the map
+                initMap(data.lat, data.lng);
+            });
+
+            // Initialize the map
+            function initMap(lat, lng) {
+                const map = new google.maps.Map(document.getElementById('map'), {
+                    center: { lat: lat, lng: lng },
+                    zoom: 8
+                });
+                new google.maps.Marker({
+                    position: { lat: lat, lng: lng },
+                    map: map,
+                    title: 'Current Location'
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>Google Maps and Socket.io</h1>
+    <div id="coordinates"></div>
+    <div id="map" style="height: 500px; width: 100%;"></div>
+
+    <!-- Load the Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCa_C1GIFGfE-T50ac8_ZSweJ2SG-hFtUI&callback=initMap" async defer></script>
+</body>
+</html>
